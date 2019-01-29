@@ -2,6 +2,11 @@ package com.hyperledger.simplesdk.chaincode;
 
 import java.util.ArrayList;
 
+/**
+ * 链玛业务操作请求
+ *
+ * @author jinlong
+ */
 public class ChaincodeRequest {
 
     private ChaincodeDefinition chaincodeDefinition;
@@ -19,7 +24,6 @@ public class ChaincodeRequest {
     public void setProposalWaitTime(long proposalWaitTime) {
         this.proposalWaitTime = proposalWaitTime;
     }
-
 
 
     public ChaincodeDefinition getChaincodeDefinition() {

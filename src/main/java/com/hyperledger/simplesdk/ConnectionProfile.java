@@ -10,6 +10,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+/**
+ * 连接文档
+ *
+ * @author jinlong
+ */
 public class ConnectionProfile {
     private NetworkConfig networkConfig;
     private JsonObject jsonObject;
@@ -40,8 +45,6 @@ public class ConnectionProfile {
             fabricPeerAdmin.setMspid(userInfo.getMspid());
             fabricPeerAdmin.setName(userInfo.getName());
             fabricPeerAdmin.setEnrollment(userInfo.getEnrollment());
-            //fabricPeerAdmin.setPrivateKey(PemUtils.getPEMString(userInfo.getEnrollment().getKey()));
-            //fabricPeerAdmin.setSignedCert(userInfo.getEnrollment().getCert());
             return fabricPeerAdmin;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);

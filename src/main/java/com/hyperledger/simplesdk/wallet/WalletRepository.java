@@ -14,6 +14,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
+/**
+ * 钱包仓库
+ *
+ * @author jinlong
+ */
 public class WalletRepository {
     private WalletConfig walletConfig;
     private CaClient caClient;

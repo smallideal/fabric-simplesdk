@@ -4,6 +4,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 链玛初始化请求
+ *
+ * @author jinlong
+ */
 public class ChaincodeInstantiateRequest {
 
     private ChaincodeDefinition chaincodeDefinition;

@@ -2,6 +2,11 @@ package com.hyperledger.simplesdk.chaincode;
 
 import java.io.File;
 
+/**
+ * 链玛安装请求
+ *
+ * @author jinlong
+ */
 public class ChaincodeInstallRequest {
     private ChaincodeDefinition chaincodeDefinition;
     private File chaincodeDir;

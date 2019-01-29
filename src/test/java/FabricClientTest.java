@@ -6,22 +6,22 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Paths;
 
 public class FabricClientTest {
 
+    private static final String PROJECT_PATH ="/Users/long/blockchain/simplesdk";
 
 
     @Test
     public void testInstall() throws Exception{
         InputStream inputStream = FabricClientTest.class.getResourceAsStream("connection.json");
         ConnectionProfile connectionProfile = new ConnectionProfile(inputStream);
-        WalletConfig walletConfig = new WalletConfig("funi", "/Users/long/blockchain/simfabric/target/cards");
+        WalletConfig walletConfig = new WalletConfig("test", PROJECT_PATH +"/fabcar/test/cards");
         FabricClient fabricClient = new FabricClient(connectionProfile, walletConfig,"mychannel");
         ChaincodeDefinition chaincodeDefinition = new ChaincodeDefinition("fabcar", "1.0");
         ChaincodeInstallRequest chaincodeInstallRequest  =new ChaincodeInstallRequest();
         chaincodeInstallRequest.setChaincodeDefinition(chaincodeDefinition);
-        chaincodeInstallRequest.setChaincodeDir(new File("/Users/long/blockchain/simfabric/fabcar/chaincode/fabcar/go/"));
+        chaincodeInstallRequest.setChaincodeDir(new File(PROJECT_PATH +"/fabcar/chaincode/fabcar/go/"));
         fabricClient.installChainCode(chaincodeInstallRequest);
     }
 
@@ -29,13 +29,12 @@ public class FabricClientTest {
     public void testInstantiate() throws Exception{
          InputStream inputStream = FabricClientTest.class.getResourceAsStream("connection.json");
         ConnectionProfile connectionProfile = new ConnectionProfile(inputStream);
-        WalletConfig walletConfig = new WalletConfig("funi", "/Users/long/blockchain/simfabric/target/cards");
+        WalletConfig walletConfig = new WalletConfig("test", PROJECT_PATH +"/fabcar/test/cards");
         FabricClient fabricClient = new FabricClient(connectionProfile, walletConfig,"mychannel");
         ChaincodeDefinition chaincodeDefinition = new ChaincodeDefinition("fabcar", "1.0");
         ChaincodeInstantiateRequest chaincodeInstantiateRequest  =new ChaincodeInstantiateRequest();
         chaincodeInstantiateRequest.setChaincodeDefinition(chaincodeDefinition);
-        //chaincodeInstantiateRequest.setEndorsementPolicyFile(new File("/Users/long/blockchain/simfabric/fabcar/chaincode/fabcar/go/"));
-        chaincodeInstantiateRequest.setEndorsementPolicyFile(new File("/Users/long/blockchain/simfabric/src/test/resources/chaincodeendorsementpolicyAllMembers.yaml"));
+        chaincodeInstantiateRequest.setEndorsementPolicyFile(new File(PROJECT_PATH +"/src/test/resources/chaincodeendorsementpolicyAllMembers.yaml"));
         fabricClient.instantiateChainCode(chaincodeInstantiateRequest);
     }
 
@@ -43,7 +42,7 @@ public class FabricClientTest {
     public void testInitFarcar() throws Exception {
         InputStream inputStream = FabricClientTest.class.getResourceAsStream("connection.json");
         ConnectionProfile connectionProfile = new ConnectionProfile(inputStream);
-        WalletConfig walletConfig = new WalletConfig("funi", "/Users/long/blockchain/simfabric/target/cards");
+        WalletConfig walletConfig = new WalletConfig("test", PROJECT_PATH+"/fabcar/test/cards");
         FabricClient fabricClient = new FabricClient(connectionProfile, walletConfig,"mychannel");
         ChaincodeRequest request = new ChaincodeRequest();
         request.setChaincodeDefinition(new ChaincodeDefinition("fabcar", "1.0"));
@@ -56,7 +55,7 @@ public class FabricClientTest {
     public void testQuery() throws Exception {
         InputStream inputStream = FabricClientTest.class.getResourceAsStream("connection.json");
         ConnectionProfile connectionProfile = new ConnectionProfile(inputStream);
-        WalletConfig walletConfig = new WalletConfig("funi", "/Users/long/blockchain/simfabric/target/cards");
+        WalletConfig walletConfig = new WalletConfig("test", PROJECT_PATH+"/fabcar/test/cards");
         FabricClient fabricClient = new FabricClient(connectionProfile, walletConfig,"mychannel");
         ChaincodeRequest request = new ChaincodeRequest();
         request.setChaincodeDefinition(new ChaincodeDefinition("fabcar", "1.0"));

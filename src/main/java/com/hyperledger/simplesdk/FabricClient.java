@@ -10,11 +10,6 @@ import com.hyperledger.simplesdk.wallet.WalletRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
 /**
  * SimpleSdk 暴露的超级账本客户端
  *
