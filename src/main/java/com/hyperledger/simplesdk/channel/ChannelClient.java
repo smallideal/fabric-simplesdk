@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.hyperledger.simplesdk.*;
 import com.hyperledger.simplesdk.chaincode.ChaincodeDefinition;
 import com.hyperledger.simplesdk.chaincode.ChaincodeRequest;
-import com.hyperledger.simplesdk.chaincode.QueryResult;
+import com.hyperledger.simplesdk.chaincode.TransactionResult;
 import com.hyperledger.simplesdk.utils.FileUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hyperledger.fabric.sdk.*;
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
-import static org.hyperledger.fabric.sdk.Channel.TransactionOptions.createTransactionOptions;
 
 
 /**
@@ -89,7 +87,7 @@ public class ChannelClient {
                 throw new IllegalStateException("Not enough endorsers for instantiate :" + successful.size() + "endorser failed with " + first.getMessage() + ". Was verified:" + first.isVerified());
             }
             CompletableFuture<BlockEvent.TransactionEvent> completableFuture = channel.sendTransaction(successful); // specify the orderers we want to try this transaction. Fails once all Orderers are tried.
-                    // The events to signal the completion of the interest in the transaction
+            // The events to signal the completion of the interest in the transaction
             BlockEvent.TransactionEvent event = completableFuture.get(32000, TimeUnit.SECONDS);
             if (event.isValid() && event.getSignature() != null) {
                 logger.info("Finished instantiate transaction with transaction id %s", event.getTransactionID());
@@ -114,10 +112,16 @@ public class ChannelClient {
             InstallProposalRequest installProposalRequest = hfClient.newInstallProposalRequest();
             ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chaincodeDefinition.getName())
                     .setVersion(chaincodeDefinition.getVersion());
-            String packagePath = "github/"+chaincodeDefinition.getName();
-            chaincodeIDBuilder.setPath(packagePath);
+            if (chaincodeDefinition.getLanguage().equals(TransactionRequest.Type.GO_LANG)) {
+                String packagePath = "github/" + chaincodeDefinition.getName();
+                chaincodeIDBuilder.setPath(packagePath);
+                installProposalRequest.setChaincodeInputStream(FileUtils.generateTarGzInputStream(chaincodeFile, Paths.get("src", packagePath).toString()));
+            }
+            if (chaincodeDefinition.getLanguage().equals(TransactionRequest.Type.JAVA)) {
+                installProposalRequest.setChaincodeInputStream(FileUtils.generateTarGzInputStream(chaincodeFile, Paths.get("src").toString()));
+            }
+
             installProposalRequest.setChaincodeID(chaincodeIDBuilder.build());
-            installProposalRequest.setChaincodeInputStream(FileUtils.generateTarGzInputStream(chaincodeFile,Paths.get("src",packagePath).toString()));
             installProposalRequest.setChaincodeVersion(chaincodeDefinition.getVersion());
             installProposalRequest.setChaincodeLanguage(chaincodeDefinition.getLanguage());
             Collection<Peer> peers = channel.getPeers();
@@ -151,15 +155,16 @@ public class ChannelClient {
      * @return 提案响应
      * @throws Exception
      */
-    public QueryResult query(ChaincodeRequest chaincodeRequest) {
+    public TransactionResult query(ChaincodeRequest chaincodeRequest) {
         logger.info("Send Query Proposal to all peers");
         QueryByChaincodeRequest queryByChaincodeRequest = this.hfClient.newQueryProposalRequest();
         queryByChaincodeRequest.setArgs(chaincodeRequest.getArgumentList());
         queryByChaincodeRequest.setFcn(chaincodeRequest.getFunction());
         queryByChaincodeRequest.setChaincodeID(chaincodeRequest.getChaincodeDefinition().toSdkID());
+        TransactionResult queryResult = new TransactionResult();
         try {
             Collection<ProposalResponse> proposalResponseCollection = this.channel.queryByChaincode(queryByChaincodeRequest, channel.getPeers());
-            String payload = null;
+
             for (ProposalResponse proposalResponse : proposalResponseCollection) {
                 if (!(proposalResponse.isVerified() && proposalResponse.getStatus() == ProposalResponse.Status.SUCCESS)) {
                     if (logger.isDebugEnabled()) {
@@ -167,18 +172,13 @@ public class ChannelClient {
                                 proposalResponse.getStatus() + ". Messages: " + proposalResponse.getMessage() + ". Was verified : " + proposalResponse.isVerified());
                     }
                 } else {
-                    payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
+                    queryResult.parse(proposalResponse.getProposalResponse().getResponse());
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Query payload of b from peer %s returned %s", proposalResponse.getPeer().getName(), payload);
+                        logger.debug("Query payload of b from peer %s returned %s", proposalResponse.getPeer().getName(), queryResult.getPayload());
                     }
                     break;
                 }
             }
-            QueryResult queryResult = new QueryResult();
-            if (payload == null || "".equals(payload)) {
-                return queryResult;
-            }
-            queryResult.setData(payload.startsWith("[") ? JSON.parseArray(payload) : JSON.parseObject(payload));
             logger.info("Successfully sent Proposal and received ProposalResponse");
             return queryResult;
         } catch (Exception e) {
@@ -194,7 +194,7 @@ public class ChannelClient {
      * @return 提案事件监听
      * @throws Exception
      */
-    public void submit(ChaincodeRequest chaincodeRequest) {
+    public TransactionResult submit(ChaincodeRequest chaincodeRequest) {
         ChaincodeID chaincodeID = chaincodeRequest.getChaincodeDefinition().toSdkID();
         TransactionProposalRequest transactionProposalRequest = this.hfClient.newTransactionProposalRequest();
         transactionProposalRequest.setChaincodeID(chaincodeID);
@@ -202,6 +202,7 @@ public class ChannelClient {
         transactionProposalRequest.setFcn(chaincodeRequest.getFunction());
         transactionProposalRequest.setProposalWaitTime(chaincodeRequest.getProposalWaitTime());
         transactionProposalRequest.setArgs(chaincodeRequest.getArgumentList());
+        TransactionResult queryResult = new TransactionResult();
         try {
             //FIXME sent to channel.getPeers() or getEndorsingPeers()?
             //  Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposalToEndorsers(transactionProposalRequest);
@@ -226,6 +227,7 @@ public class ChannelClient {
                         logger.debug("Successful transaction proposal response Txid: " + response.getTransactionID() + " from peer " + response.getPeer().getName());
                     }
                     successful.add(response);
+                    queryResult.parse(response.getProposalResponse().getResponse());
                 } else {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Failed transaction proposal response " + response);
@@ -270,7 +272,7 @@ public class ChannelClient {
                 throw new IllegalStateException(format("sent Transaction failed with %s exception %s", e.getClass().getName(), e.getMessage()), e);
 
             }).get(proposalWaitTime, TimeUnit.SECONDS);
-
+            return queryResult;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

@@ -49,4 +49,8 @@ public class ChaincodeRequest {
     public void setArgumentList(ArrayList<String> argumentList) {
         this.argumentList = argumentList;
     }
+
+    public void addArgument(String value){
+        this.argumentList.add(value);
+    }
 }

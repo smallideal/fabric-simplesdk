@@ -3,7 +3,7 @@ package com.hyperledger.simplesdk;
 import com.hyperledger.simplesdk.chaincode.ChaincodeInstallRequest;
 import com.hyperledger.simplesdk.chaincode.ChaincodeInstantiateRequest;
 import com.hyperledger.simplesdk.chaincode.ChaincodeRequest;
-import com.hyperledger.simplesdk.chaincode.QueryResult;
+import com.hyperledger.simplesdk.chaincode.TransactionResult;
 import com.hyperledger.simplesdk.channel.ChannelClient;
 import com.hyperledger.simplesdk.wallet.WalletConfig;
 import com.hyperledger.simplesdk.wallet.WalletRepository;
@@ -47,11 +47,11 @@ public class FabricClient {
 
     }
 
-    public QueryResult query(ChaincodeRequest chaincodeRequest) {
+    public TransactionResult query(ChaincodeRequest chaincodeRequest) {
         return userChannelClient.query(chaincodeRequest);
     }
 
-    public void submit(ChaincodeRequest chaincodeRequest) {
-        userChannelClient.submit(chaincodeRequest);
+    public TransactionResult submit(ChaincodeRequest chaincodeRequest) {
+        return userChannelClient.submit(chaincodeRequest);
     }
 }
