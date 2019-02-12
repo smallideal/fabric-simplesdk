@@ -10,6 +10,8 @@ import com.hyperledger.simplesdk.wallet.WalletRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+
 /**
  * SimpleSdk 暴露的超级账本客户端
  *
@@ -53,5 +55,13 @@ public class FabricClient {
 
     public TransactionResult submit(ChaincodeRequest chaincodeRequest) {
         return userChannelClient.submit(chaincodeRequest);
+    }
+
+    public void upgradeChainCode(ChaincodeInstantiateRequest chaincodeInstantiateRequest) {
+        ChaincodeRequest chaincodeRequest = new ChaincodeRequest();
+        chaincodeRequest.setFunction("init");
+        chaincodeRequest.setArgumentList(new ArrayList<>());
+        chaincodeRequest.setChaincodeDefinition(chaincodeInstantiateRequest.getChaincodeDefinition());
+        peerAdminChannelClient.upgradeChainCode(chaincodeRequest, chaincodeInstantiateRequest.getEndorsementPolicyFile());
     }
 }

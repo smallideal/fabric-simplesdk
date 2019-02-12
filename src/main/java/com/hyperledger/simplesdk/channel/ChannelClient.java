@@ -294,4 +294,56 @@ public class ChannelClient {
         }
 
     }
+
+    public void upgradeChainCode(ChaincodeRequest request, File endorsementPolicyFile) {
+        Collection<ProposalResponse> responses;
+        Collection<ProposalResponse> successful = new LinkedList<>();
+        Collection<ProposalResponse> failed = new LinkedList<>();
+        UpgradeProposalRequest upgradeProposalRequest = hfClient.newUpgradeProposalRequest();
+        upgradeProposalRequest.setProposalWaitTime(proposalWaitTime);
+        upgradeProposalRequest.setChaincodeID(request.getChaincodeDefinition().toSdkID());
+        upgradeProposalRequest.setChaincodeLanguage(request.getChaincodeDefinition().getLanguage());
+        upgradeProposalRequest.setFcn(request.getFunction());
+        upgradeProposalRequest.setArgs(request.getArgumentList());
+        try {
+            ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
+            chaincodeEndorsementPolicy.fromYamlFile(endorsementPolicyFile);
+            upgradeProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
+
+            logger.info("Sending upgradeProposalRequest to all peers with arguments");
+            responses = channel.sendUpgradeProposal(upgradeProposalRequest, channel.getPeers());
+            for (ProposalResponse response : responses) {
+                if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                    successful.add(response);
+                    logger.info("Succesful upgrade proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                } else {
+                    failed.add(response);
+                }
+            }
+            logger.info("Received %d upgrade proposal responses. Successful+verified: %d . Failed: %d", responses.size(), successful.size(), failed.size());
+            if (failed.size() > 0) {
+                for (ProposalResponse fail : failed) {
+
+                    logger.info("Not enough endorsers for upgrade :" + successful.size() + "endorser failed with " + fail.getMessage() + ", on peer" + fail.getPeer());
+
+                }
+                ProposalResponse first = failed.iterator().next();
+                throw new IllegalStateException("Not enough endorsers for upgrade :" + successful.size() + "endorser failed with " + first.getMessage() + ". Was verified:" + first.isVerified());
+            }
+            CompletableFuture<BlockEvent.TransactionEvent> completableFuture = channel.sendTransaction(successful); // specify the orderers we want to try this transaction. Fails once all Orderers are tried.
+            // The events to signal the completion of the interest in the transaction
+            BlockEvent.TransactionEvent event = completableFuture.get(32000, TimeUnit.SECONDS);
+            if (event.isValid() && event.getSignature() != null) {
+                logger.info("Finished upgrade transaction with transaction id %s", event.getTransactionID());
+            } else {
+                throw new IllegalStateException("Not enough endorsers for upgrade ");
+            }
+
+        } catch (Exception e) {
+            throw new IllegalStateException("Not enough endorsers for upgrade ", e);
+        } finally {
+            logger.info("Sending upgradeTransaction to orderer");
+        }
+
+    }
 }
