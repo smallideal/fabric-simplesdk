@@ -10,6 +10,15 @@ import org.hyperledger.fabric.protos.peer.FabricProposalResponse;
 public class TransactionResult {
     private String payload;
     private String message;
+    private String transactionId;
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
 
     public String getMessage() {
         return message;

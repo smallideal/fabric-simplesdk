@@ -1,7 +1,8 @@
 package com.hyperledger.simplesdk.ca;
 
+import com.hyperledger.simplesdk.ConnectionProfile;
 import com.hyperledger.simplesdk.utils.PemUtils;
-import com.hyperledger.simplesdk.channel.FabricUser;
+import com.hyperledger.simplesdk.channel.EnrollUser;
 import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.NetworkConfig;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
@@ -20,8 +21,9 @@ public class CaClient {
 
     private NetworkConfig.CAInfo caInfo;
 
-    public CaClient(NetworkConfig.CAInfo caInfo) {
-        this.caInfo = caInfo;
+
+    public CaClient(ConnectionProfile connectionProfile) {
+        this.caInfo = connectionProfile.getNetworkConfig().getClientOrganization().getCertificateAuthorities().get(0);
     }
 
     /**
@@ -30,8 +32,8 @@ public class CaClient {
      * @return 授权用户
      * @throws Exception
      */
-    public FabricUser enrollAdmin() throws Exception {
-        FabricUser fabricUser = new FabricUser();
+    public EnrollUser enrollAdmin() throws Exception {
+        EnrollUser fabricUser = new EnrollUser();
         HFCAClient caClient = HFCAClient.createNewInstance(caInfo);
         caClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
         Enrollment enrollment = caClient.enroll(adminUsername, adminPassword);
@@ -48,10 +50,10 @@ public class CaClient {
      * @return 授权用户
      * @throws Exception
      */
-    public FabricUser registerUser(FabricUser adminUser, String username) throws Exception {
+    public EnrollUser registerUser(EnrollUser adminUser, String username) throws Exception {
         HFCAClient caClient = HFCAClient.createNewInstance(caInfo);
         caClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-        FabricUser newUser = new FabricUser();
+        EnrollUser newUser = new EnrollUser();
         newUser.setName(username);
         RegistrationRequest rr = new RegistrationRequest(newUser.getName());
         String enrollmentSecret = caClient.register(rr, adminUser);

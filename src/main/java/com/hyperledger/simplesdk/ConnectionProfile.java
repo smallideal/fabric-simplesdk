@@ -1,6 +1,6 @@
 package com.hyperledger.simplesdk;
 
-import com.hyperledger.simplesdk.channel.FabricUser;
+import com.hyperledger.simplesdk.channel.EnrollUser;
 import org.hyperledger.fabric.sdk.NetworkConfig;
 
 import javax.json.Json;
@@ -18,6 +18,9 @@ import java.io.InputStream;
 public class ConnectionProfile {
     private NetworkConfig networkConfig;
     private JsonObject jsonObject;
+
+    public ConnectionProfile() {
+    }
 
     public ConnectionProfile(InputStream inputStream) throws Exception {
         JsonReader reader = Json.createReader(inputStream);
@@ -38,10 +41,10 @@ public class ConnectionProfile {
         return this.networkConfig;
     }
 
-    public FabricUser getPeerAdmin() {
+    public EnrollUser getPeerAdmin() {
         try {
             NetworkConfig.UserInfo userInfo = networkConfig.getPeerAdmin();
-            FabricUser fabricPeerAdmin = new FabricUser();
+            EnrollUser fabricPeerAdmin = new EnrollUser();
             fabricPeerAdmin.setMspid(userInfo.getMspid());
             fabricPeerAdmin.setName(userInfo.getName());
             fabricPeerAdmin.setEnrollment(userInfo.getEnrollment());

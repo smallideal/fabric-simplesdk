@@ -4,6 +4,7 @@ import com.hyperledger.simplesdk.utils.PemUtils;
 import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.User;
 
+import java.io.Serializable;
 import java.security.PrivateKey;
 import java.util.Set;
 
@@ -12,7 +13,8 @@ import java.util.Set;
  *
  * @author jinlong
  */
-public class FabricUser implements User {
+public class EnrollUser implements User,Serializable {
+    private static final long serialVersionUID = -5991518975487569843L;
     private String name;
     private String mspid;
     private Set<String> roles;
@@ -20,7 +22,7 @@ public class FabricUser implements User {
     private String affiliation;
     private String privateKey;
     private String signedCert;
-    private Enrollment enrollment;
+    private transient Enrollment enrollment;
 
     public void setEnrollment(Enrollment enrollment) {
         this.enrollment = enrollment;
@@ -87,6 +89,7 @@ public class FabricUser implements User {
     public String getAffiliation() {
         return affiliation;
     }
+
 
     @Override
     public Enrollment getEnrollment() {

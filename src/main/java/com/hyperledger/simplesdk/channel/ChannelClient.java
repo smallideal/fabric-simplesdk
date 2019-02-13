@@ -1,6 +1,5 @@
 package com.hyperledger.simplesdk.channel;
 
-import com.alibaba.fastjson.JSON;
 import com.hyperledger.simplesdk.*;
 import com.hyperledger.simplesdk.chaincode.ChaincodeDefinition;
 import com.hyperledger.simplesdk.chaincode.ChaincodeRequest;
@@ -38,7 +37,7 @@ public class ChannelClient {
 
     private int proposalWaitTime = 300;
 
-    public ChannelClient(FabricUser fabricUser, ConnectionProfile connectionProfile, String channelName) throws Exception {
+    public ChannelClient(EnrollUser fabricUser, ConnectionProfile connectionProfile, String channelName) throws Exception {
         this.hfClient = HFClient.createNewInstance();
         hfClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
         hfClient.setUserContext(fabricUser);
@@ -228,6 +227,7 @@ public class ChannelClient {
                     }
                     successful.add(response);
                     queryResult.parse(response.getProposalResponse().getResponse());
+                    queryResult.setTransactionId(response.getTransactionID());
                 } else {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Failed transaction proposal response " + response);

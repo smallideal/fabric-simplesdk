@@ -5,10 +5,8 @@ import com.hyperledger.simplesdk.chaincode.ChaincodeInstantiateRequest;
 import com.hyperledger.simplesdk.chaincode.ChaincodeRequest;
 import com.hyperledger.simplesdk.chaincode.TransactionResult;
 import com.hyperledger.simplesdk.channel.ChannelClient;
-import com.hyperledger.simplesdk.wallet.WalletConfig;
-import com.hyperledger.simplesdk.wallet.WalletRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.hyperledger.simplesdk.channel.EnrollUser;
+import org.hyperledger.fabric.sdk.Channel;
 
 import java.util.ArrayList;
 
@@ -20,20 +18,16 @@ import java.util.ArrayList;
 public class FabricClient {
 
 
-    private static final Logger logger = LoggerFactory.getLogger(FabricClient.class);
-
-
     private ChannelClient peerAdminChannelClient;
     private ChannelClient userChannelClient;
 
 
-    public FabricClient(ConnectionProfile connectionProfile, WalletConfig walletConfig, String channelName) throws Exception {
-        WalletRepository walletRepository = new WalletRepository(
-                walletConfig,
-                connectionProfile.getNetworkConfig().getClientOrganization());
+
+    public FabricClient(EnrollUser enrollUser, ConnectionProfile connectionProfile, String channelName) throws Exception {
         peerAdminChannelClient = new ChannelClient(connectionProfile.getPeerAdmin(), connectionProfile, channelName);
-        userChannelClient = new ChannelClient(walletRepository.registerUser(), connectionProfile, channelName);
+        userChannelClient = new ChannelClient(enrollUser,connectionProfile, channelName);
     }
+
 
     public void installChainCode(ChaincodeInstallRequest chaincodeInstallRequest) {
         peerAdminChannelClient.installChainCode(chaincodeInstallRequest.getChaincodeDefinition(),
@@ -64,4 +58,9 @@ public class FabricClient {
         chaincodeRequest.setChaincodeDefinition(chaincodeInstantiateRequest.getChaincodeDefinition());
         peerAdminChannelClient.upgradeChainCode(chaincodeRequest, chaincodeInstantiateRequest.getEndorsementPolicyFile());
     }
+
+    public Channel getChannel() {
+        return userChannelClient.getChannel();
+    }
+
 }
