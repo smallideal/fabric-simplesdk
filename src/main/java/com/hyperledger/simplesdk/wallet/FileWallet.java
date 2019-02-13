@@ -50,7 +50,7 @@ public class FileWallet {
         return file.exists();
     }
 
-    public boolean addCard(ConnectionProfile connectionProfile, String userCard) {
+    public boolean registerCard(ConnectionProfile connectionProfile, String userCard) {
         UserCard adminCard = enrollAdmin(connectionProfile);
         try {
             if (exists(userCard)) {

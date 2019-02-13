@@ -65,4 +65,5 @@ public class CaClient {
         newUser.setSignedCert(signedCert);
         return newUser;
     }
+
 }

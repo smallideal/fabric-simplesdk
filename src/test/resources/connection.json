@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "client": {
     "organization": "Org1",
+    "channel":"mychannel",
     "connection": {
       "timeout": {
         "peer": {

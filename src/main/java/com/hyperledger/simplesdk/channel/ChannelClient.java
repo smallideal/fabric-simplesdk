@@ -203,6 +203,8 @@ public class ChannelClient {
         transactionProposalRequest.setArgs(chaincodeRequest.getArgumentList());
         TransactionResult queryResult = new TransactionResult();
         try {
+            Collection<ProposalResponse> successful = new ArrayList<>();
+            Collection<ProposalResponse> failed = new ArrayList<>();
             //FIXME sent to channel.getPeers() or getEndorsingPeers()?
             //  Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposalToEndorsers(transactionProposalRequest);
             Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest);
@@ -211,15 +213,29 @@ public class ChannelClient {
             //  Shown here as an example that applications can invoke and select.
             // See org.hyperledger.fabric.sdk.proposal.consistency_validation config property.
             Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets(transactionPropResp);
-            if (proposalConsistencySets.size() != 1) {
-                String error = "Expected only one set of consistent proposal responses but got " + proposalConsistencySets.size();
+            for (ProposalResponse response : transactionPropResp) {
+                if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
+                    logger.debug("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                    successful.add(response);
+                } else {
+                    failed.add(response);
+                }
+            }
+
+            logger.debug("Received %d transaction proposal responses. Successful+verified: %d . Failed: %d",
+                    transactionPropResp.size(), successful.size(), failed.size());
+            if (failed.size() > 0) {
+                ProposalResponse firstTransactionProposalResponse = failed.iterator().next();
+                String error ="Not enough endorsers for "+chaincodeRequest.getFunction()+":" + failed.size() + " endorser error: " +
+                        firstTransactionProposalResponse.getMessage() +
+                        ". Was verified: " + firstTransactionProposalResponse.isVerified();
                 logger.error(error);
-                //FabricUtils.debugProposalResponse(transactionPropResp);
                 throw new IllegalStateException(error);
             }
 
-            Collection<ProposalResponse> successful = new ArrayList<>(transactionPropResp.size());
-            Collection<ProposalResponse> failed = new ArrayList<>(transactionPropResp.size());
+
+            successful.clear();
+            failed.clear();
             for (ProposalResponse response : transactionPropResp) {
                 if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
                     if (logger.isDebugEnabled()) {
