@@ -1,5 +1,6 @@
 package com.hyperledger.simplesdk.chaincode;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hyperledger.fabric.sdk.ChaincodeID;
 import org.hyperledger.fabric.sdk.TransactionRequest;
 
@@ -49,7 +50,11 @@ public class ChaincodeDefinition {
     }
 
     public ChaincodeID toSdkID() {
-        return ChaincodeID.newBuilder()
-                .setName(name).setVersion(version).build();
+        ChaincodeID.Builder builder = ChaincodeID.newBuilder();
+        builder.setName(name);
+        if(!StringUtils.isEmpty(version)){
+            builder.setVersion(version);
+        }
+        return builder.build();
     }
 }

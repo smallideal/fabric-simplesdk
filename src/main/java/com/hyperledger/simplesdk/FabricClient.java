@@ -6,6 +6,7 @@ import com.hyperledger.simplesdk.chaincode.ChaincodeRequest;
 import com.hyperledger.simplesdk.chaincode.TransactionResult;
 import com.hyperledger.simplesdk.channel.ChannelClient;
 import com.hyperledger.simplesdk.channel.EnrollUser;
+import org.apache.commons.lang3.StringUtils;
 import org.hyperledger.fabric.sdk.Channel;
 
 import java.util.ArrayList;
